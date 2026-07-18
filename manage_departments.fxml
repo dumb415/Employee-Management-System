@@ -1,0 +1,145 @@
+package com.ems.controller.admin;
+
+import com.ems.model.Department;
+import com.ems.model.Employee;
+import com.ems.service.DepartmentService;
+import com.ems.service.EmployeeService;
+
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+
+import java.time.LocalDate;
+
+public class ManageEmployeesController {
+
+    @FXML private TableView<Employee> employeeTable;
+    @FXML private TableColumn<Employee, Integer> colId;
+    @FXML private TableColumn<Employee, String> colName;
+    @FXML private TableColumn<Employee, String> colEmail;
+    @FXML private TableColumn<Employee, String> colPhone;
+    @FXML private TableColumn<Employee, String> colDept;
+    @FXML private TableColumn<Employee, Double> colSalary;
+    @FXML private TableColumn<Employee, LocalDate> colHireDate;
+
+    @FXML private TextField nameField;
+    @FXML private TextField emailField;
+    @FXML private TextField phoneField;
+    @FXML private TextField salaryField;
+    @FXML private DatePicker hireDatePicker;
+    @FXML private ComboBox<Department> deptCombo;
+    @FXML private Label statusLabel;
+
+    private final EmployeeService employeeService = new EmployeeService();
+    private final DepartmentService departmentService = new DepartmentService();
+
+    @FXML
+    public void initialize() {
+        colId.setCellValueFactory(new PropertyValueFactory<>("empId"));
+        colName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colPhone.setCellValueFactory(new PropertyValueFactory<>("phone"));
+        colDept.setCellValueFactory(new PropertyValueFactory<>("deptName"));
+        colSalary.setCellValueFactory(new PropertyValueFactory<>("salary"));
+        colHireDate.setCellValueFactory(new PropertyValueFactory<>("hireDate"));
+
+        deptCombo.setItems(FXCollections.observableArrayList(departmentService.getAll()));
+
+        employeeTable.getSelectionModel().selectedItemProperty().addListener((obs, oldV, emp) -> {
+            if (emp != null) fillForm(emp);
+        });
+
+        refreshTable();
+    }
+
+    private void refreshTable() {
+        employeeTable.setItems(FXCollections.observableArrayList(employeeService.getAll()));
+    }
+
+    private void fillForm(Employee emp) {
+        nameField.setText(emp.getName());
+        emailField.setText(emp.getEmail());
+        phoneField.setText(emp.getPhone());
+        salaryField.setText(String.valueOf(emp.getSalary()));
+        hireDatePicker.setValue(emp.getHireDate());
+        deptCombo.getItems().stream()
+                .filter(d -> emp.getDeptId() != null && d.getDeptId() == emp.getDeptId())
+                .findFirst()
+                .ifPresentOrElse(deptCombo::setValue, () -> deptCombo.setValue(null));
+    }
+
+    private Employee readForm() {
+        Employee emp = new Employee();
+        emp.setName(nameField.getText().trim());
+        emp.setEmail(emailField.getText().trim());
+        emp.setPhone(phoneField.getText().trim());
+        try {
+            emp.setSalary(salaryField.getText().isBlank() ? 0 : Double.parseDouble(salaryField.getText().trim()));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Salary must be a number.");
+        }
+        emp.setHireDate(hireDatePicker.getValue());
+        Department d = deptCombo.getValue();
+        emp.setDeptId(d == null ? null : d.getDeptId());
+        return emp;
+    }
+
+    @FXML
+    private void handleAdd() {
+        try {
+            Employee emp = readForm();
+            employeeService.add(emp);
+            status("Employee added. Login created (username: " + emp.getEmail() + ", password: emp123).");
+            refreshTable();
+            handleClear();
+        } catch (Exception e) {
+            status(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleUpdate() {
+        Employee selected = employeeTable.getSelectionModel().getSelectedItem();
+        if (selected == null) { status("Select an employee first."); return; }
+        try {
+            Employee emp = readForm();
+            emp.setEmpId(selected.getEmpId());
+            employeeService.update(emp);
+            status("Employee updated.");
+            refreshTable();
+        } catch (Exception e) {
+            status(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleDelete() {
+        Employee selected = employeeTable.getSelectionModel().getSelectedItem();
+        if (selected == null) { status("Select an employee first."); return; }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Delete " + selected.getName() + "? This also removes their login, attendance and leaves.",
+                ButtonType.YES, ButtonType.NO);
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.YES) {
+                employeeService.delete(selected.getEmpId());
+                status("Employee deleted.");
+                refreshTable();
+                handleClear();
+            }
+        });
+    }
+
+    @FXML
+    private void handleClear() {
+        nameField.clear();
+        emailField.clear();
+        phoneField.clear();
+        salaryField.clear();
+        hireDatePicker.setValue(null);
+        deptCombo.setValue(null);
+        employeeTable.getSelectionModel().clearSelection();
+    }
+
+    private void status(String msg) { statusLabel.setText(msg); }
+}

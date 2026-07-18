@@ -1,0 +1,39 @@
+package com.ems.controller.admin;
+
+import com.ems.model.Attendance;
+import com.ems.service.AttendanceService;
+
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+
+public class ViewAttendanceController {
+
+    @FXML private TableView<Attendance> attendanceTable;
+    @FXML private TableColumn<Attendance, Integer> colEmpId;
+    @FXML private TableColumn<Attendance, String> colEmpName;
+    @FXML private TableColumn<Attendance, String> colDate;
+    @FXML private TableColumn<Attendance, String> colCheckIn;
+    @FXML private TableColumn<Attendance, String> colCheckOut;
+    @FXML private TableColumn<Attendance, String> colStatus;
+
+    private final AttendanceService attendanceService = new AttendanceService();
+
+    @FXML
+    public void initialize() {
+        colEmpId.setCellValueFactory(new PropertyValueFactory<>("empId"));
+        colEmpName.setCellValueFactory(new PropertyValueFactory<>("empName"));
+        colDate.setCellValueFactory(new PropertyValueFactory<>("attDate"));
+        colCheckIn.setCellValueFactory(new PropertyValueFactory<>("checkIn"));
+        colCheckOut.setCellValueFactory(new PropertyValueFactory<>("checkOut"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        handleRefresh();
+    }
+
+    @FXML
+    private void handleRefresh() {
+        attendanceTable.setItems(FXCollections.observableArrayList(attendanceService.getAll()));
+    }
+}

@@ -1,0 +1,60 @@
+package com.ems.controller.employee;
+
+import com.ems.model.LeaveRequest;
+import com.ems.service.LeaveService;
+import com.ems.session.SessionManager;
+
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+
+public class ApplyLeaveController {
+
+    @FXML private DatePicker startDatePicker;
+    @FXML private DatePicker endDatePicker;
+    @FXML private TextArea reasonArea;
+    @FXML private Label statusLabel;
+
+    @FXML private TableView<LeaveRequest> leaveTable;
+    @FXML private TableColumn<LeaveRequest, String> colStart;
+    @FXML private TableColumn<LeaveRequest, String> colEnd;
+    @FXML private TableColumn<LeaveRequest, String> colReason;
+    @FXML private TableColumn<LeaveRequest, String> colStatus;
+
+    private final LeaveService leaveService = new LeaveService();
+    private Integer empId;
+
+    @FXML
+    public void initialize() {
+        colStart.setCellValueFactory(new PropertyValueFactory<>("startDate"));
+        colEnd.setCellValueFactory(new PropertyValueFactory<>("endDate"));
+        colReason.setCellValueFactory(new PropertyValueFactory<>("reason"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        empId = SessionManager.getCurrentUser().getEmpId();
+        if (empId == null) {
+            statusLabel.setText("No employee record linked to this account.");
+            return;
+        }
+        refreshTable();
+    }
+
+    private void refreshTable() {
+        leaveTable.setItems(FXCollections.observableArrayList(leaveService.getForEmployee(empId)));
+    }
+
+    @FXML
+    private void handleSubmit() {
+        if (empId == null) return;
+        try {
+            leaveService.apply(empId, startDatePicker.getValue(), endDatePicker.getValue(), reasonArea.getText());
+            statusLabel.setText("Leave request submitted.");
+            startDatePicker.setValue(null);
+            endDatePicker.setValue(null);
+            reasonArea.clear();
+            refreshTable();
+        } catch (Exception e) {
+            statusLabel.setText(e.getMessage());
+        }
+    }
+}

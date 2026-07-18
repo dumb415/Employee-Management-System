@@ -1,0 +1,67 @@
+package com.ems.controller.employee;
+
+import com.ems.model.Attendance;
+import com.ems.service.AttendanceService;
+import com.ems.session.SessionManager;
+
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+
+public class MyAttendanceController {
+
+    @FXML private TableView<Attendance> attendanceTable;
+    @FXML private TableColumn<Attendance, String> colDate;
+    @FXML private TableColumn<Attendance, String> colCheckIn;
+    @FXML private TableColumn<Attendance, String> colCheckOut;
+    @FXML private TableColumn<Attendance, String> colStatus;
+    @FXML private Label statusLabel;
+
+    private final AttendanceService attendanceService = new AttendanceService();
+    private Integer empId;
+
+    @FXML
+    public void initialize() {
+        colDate.setCellValueFactory(new PropertyValueFactory<>("attDate"));
+        colCheckIn.setCellValueFactory(new PropertyValueFactory<>("checkIn"));
+        colCheckOut.setCellValueFactory(new PropertyValueFactory<>("checkOut"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        empId = SessionManager.getCurrentUser().getEmpId();
+        if (empId == null) {
+            statusLabel.setText("No employee record linked to this account.");
+            return;
+        }
+        refreshTable();
+    }
+
+    private void refreshTable() {
+        attendanceTable.setItems(FXCollections.observableArrayList(attendanceService.getForEmployee(empId)));
+    }
+
+    @FXML
+    private void handleCheckIn() {
+        if (empId == null) return;
+        try {
+            attendanceService.checkIn(empId);
+            statusLabel.setText("Checked in.");
+            refreshTable();
+        } catch (Exception e) {
+            statusLabel.setText(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleCheckOut() {
+        if (empId == null) return;
+        try {
+            attendanceService.checkOut(empId);
+            statusLabel.setText("Checked out.");
+            refreshTable();
+        } catch (Exception e) {
+            statusLabel.setText(e.getMessage());
+        }
+    }
+}

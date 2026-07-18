@@ -1,0 +1,28 @@
+package com.ems.controller.employee;
+
+import com.ems.model.Employee;
+import com.ems.service.EmployeeService;
+import com.ems.session.SessionManager;
+
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+
+public class MySalaryController {
+
+    @FXML private Label nameLabel;
+    @FXML private Label deptLabel;
+    @FXML private Label salaryLabel;
+    @FXML private Label hireDateLabel;
+
+    @FXML
+    public void initialize() {
+        Integer empId = SessionManager.getCurrentUser().getEmpId();
+        if (empId == null) return;
+        Employee me = new EmployeeService().getById(empId);
+        if (me == null) return;
+        nameLabel.setText(me.getName());
+        deptLabel.setText(me.getDeptName() == null ? "-" : me.getDeptName());
+        salaryLabel.setText(String.format("%.2f", me.getSalary()));
+        hireDateLabel.setText(me.getHireDate() == null ? "-" : me.getHireDate().toString());
+    }
+}

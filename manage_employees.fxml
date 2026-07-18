@@ -1,0 +1,33 @@
+package com.ems.controller.admin;
+
+import com.ems.model.Employee;
+import com.ems.service.EmployeeService;
+
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+
+public class SalaryReportsController {
+
+    @FXML private TableView<Employee> salaryTable;
+    @FXML private TableColumn<Employee, Integer> colId;
+    @FXML private TableColumn<Employee, String> colName;
+    @FXML private TableColumn<Employee, String> colDept;
+    @FXML private TableColumn<Employee, Double> colSalary;
+    @FXML private Label totalLabel;
+
+    private final EmployeeService employeeService = new EmployeeService();
+
+    @FXML
+    public void initialize() {
+        colId.setCellValueFactory(new PropertyValueFactory<>("empId"));
+        colName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colDept.setCellValueFactory(new PropertyValueFactory<>("deptName"));
+        colSalary.setCellValueFactory(new PropertyValueFactory<>("salary"));
+        salaryTable.setItems(FXCollections.observableArrayList(employeeService.getAll()));
+        totalLabel.setText(String.format("Total monthly payroll: %.2f", employeeService.totalPayroll()));
+    }
+}

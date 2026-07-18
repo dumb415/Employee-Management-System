@@ -1,0 +1,43 @@
+package com.ems.controller.admin;
+
+import com.ems.session.SessionManager;
+import com.ems.util.SceneSwitcher;
+
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.layout.BorderPane;
+
+public class AdminDashboardController {
+
+    @FXML private BorderPane mainPane;
+
+    @FXML
+    public void initialize() {
+        showEmployees();
+    }
+
+    @FXML private void showEmployees() {
+        mainPane.setCenter(SceneSwitcher.load("/com/ems/fxml/admin/manage_employees.fxml"));
+    }
+
+    @FXML private void showDepartments() {
+        mainPane.setCenter(SceneSwitcher.load("/com/ems/fxml/admin/manage_departments.fxml"));
+    }
+
+    @FXML private void showAttendance() {
+        mainPane.setCenter(SceneSwitcher.load("/com/ems/fxml/admin/view_attendance.fxml"));
+    }
+
+    @FXML private void showLeaves() {
+        mainPane.setCenter(SceneSwitcher.load("/com/ems/fxml/admin/approve_leaves.fxml"));
+    }
+
+    @FXML private void showSalaryReports() {
+        mainPane.setCenter(SceneSwitcher.load("/com/ems/fxml/admin/salary_reports.fxml"));
+    }
+
+    @FXML private void handleLogout(ActionEvent event) {
+        SessionManager.clear();
+        SceneSwitcher.switchScene(event, "/com/ems/fxml/login.fxml", "Employee Management System - Login");
+    }
+}

@@ -1,0 +1,46 @@
+package com.ems.controller;
+
+import com.ems.model.User;
+import com.ems.service.AuthService;
+import com.ems.session.SessionManager;
+import com.ems.util.SceneSwitcher;
+
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+
+public class LoginController {
+
+    @FXML private TextField usernameField;
+    @FXML private PasswordField passwordField;
+    @FXML private Label errorLabel;
+
+    @FXML
+    private void handleLogin(ActionEvent event) {
+        String username = usernameField.getText().trim();
+        String password = passwordField.getText();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            errorLabel.setText("Please enter username and password.");
+            return;
+        }
+
+        try {
+            User user = AuthService.login(username, password);
+            if (user == null) {
+                errorLabel.setText("Invalid username or password.");
+                return;
+            }
+            SessionManager.setCurrentUser(user);
+            if ("ADMIN".equals(user.getRole())) {
+                SceneSwitcher.switchScene(event, "/com/ems/fxml/admin/admin_dashboard.fxml", "EMS - Admin Portal");
+            } else {
+                SceneSwitcher.switchScene(event, "/com/ems/fxml/employee/employee_dashboard.fxml", "EMS - Employee Portal");
+            }
+        } catch (Exception e) {
+            errorLabel.setText("Error: " + e.getMessage());
+        }
+    }
+}

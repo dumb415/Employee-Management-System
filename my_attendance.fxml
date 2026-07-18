@@ -1,0 +1,48 @@
+package com.ems.controller.employee;
+
+import com.ems.model.Employee;
+import com.ems.service.EmployeeService;
+import com.ems.session.SessionManager;
+import com.ems.util.SceneSwitcher;
+
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
+
+public class EmployeeDashboardController {
+
+    @FXML private BorderPane mainPane;
+    @FXML private Label welcomeLabel;
+
+    @FXML
+    public void initialize() {
+        Integer empId = SessionManager.getCurrentUser().getEmpId();
+        if (empId != null) {
+            Employee me = new EmployeeService().getById(empId);
+            if (me != null) welcomeLabel.setText("Welcome, " + me.getName());
+        }
+        showProfile();
+    }
+
+    @FXML private void showProfile() {
+        mainPane.setCenter(SceneSwitcher.load("/com/ems/fxml/employee/my_profile.fxml"));
+    }
+
+    @FXML private void showAttendance() {
+        mainPane.setCenter(SceneSwitcher.load("/com/ems/fxml/employee/my_attendance.fxml"));
+    }
+
+    @FXML private void showApplyLeave() {
+        mainPane.setCenter(SceneSwitcher.load("/com/ems/fxml/employee/apply_leave.fxml"));
+    }
+
+    @FXML private void showSalary() {
+        mainPane.setCenter(SceneSwitcher.load("/com/ems/fxml/employee/my_salary.fxml"));
+    }
+
+    @FXML private void handleLogout(ActionEvent event) {
+        SessionManager.clear();
+        SceneSwitcher.switchScene(event, "/com/ems/fxml/login.fxml", "Employee Management System - Login");
+    }
+}

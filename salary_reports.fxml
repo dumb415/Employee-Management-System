@@ -1,0 +1,54 @@
+package com.ems.controller.employee;
+
+import com.ems.model.Employee;
+import com.ems.service.EmployeeService;
+import com.ems.session.SessionManager;
+
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+
+public class MyProfileController {
+
+    @FXML private Label nameLabel;
+    @FXML private Label deptLabel;
+    @FXML private Label hireDateLabel;
+    @FXML private TextField emailField;
+    @FXML private TextField phoneField;
+    @FXML private Label statusLabel;
+
+    private final EmployeeService employeeService = new EmployeeService();
+    private Employee me;
+
+    @FXML
+    public void initialize() {
+        Integer empId = SessionManager.getCurrentUser().getEmpId();
+        if (empId == null) {
+            statusLabel.setText("No employee record linked to this account.");
+            return;
+        }
+        me = employeeService.getById(empId);
+        if (me == null) {
+            statusLabel.setText("Employee record not found.");
+            return;
+        }
+        nameLabel.setText(me.getName());
+        deptLabel.setText(me.getDeptName() == null ? "-" : me.getDeptName());
+        hireDateLabel.setText(me.getHireDate() == null ? "-" : me.getHireDate().toString());
+        emailField.setText(me.getEmail());
+        phoneField.setText(me.getPhone());
+    }
+
+    @FXML
+    private void handleSave() {
+        if (me == null) return;
+        try {
+            me.setEmail(emailField.getText().trim());
+            me.setPhone(phoneField.getText().trim());
+            employeeService.update(me);
+            statusLabel.setText("Profile updated.");
+        } catch (Exception e) {
+            statusLabel.setText(e.getMessage());
+        }
+    }
+}
